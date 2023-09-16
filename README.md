@@ -1,4 +1,4 @@
-# Air Datepicker
+# Air Datepicker with Jalaali calendar support and Persian localizations
 
 Lightweight customizable cross-browser jQuery datepicker, built with es5 and css-flexbox. Works in all modern desktop and mobile browsers (tested on Android 4.4+ and iOS8+).
 
@@ -18,6 +18,9 @@ npm i --save air-datepicker
 ## Usage
 ```javascript
 $('.my-datepicker').datepicker([options])
+
+// If you want to use jalali calendar
+$('.my-datepicker').datepicker({ calendar: 'jalali', language: 'fa' })
 ```
 
 ## Demo and docs
