@@ -8,5 +8,11 @@ $.fn.datepicker.language['en'] = {
     clear: 'Clear',
     dateFormat: 'mm/dd/yyyy',
     timeFormat: 'hh:ii aa',
-    firstDay: 0
+    firstDay: 0,
+    customCalendars: {
+        jalali: {
+            months: ['Farvardin','Ordibehesht','Khordad','Tir','Mordad','Shahrivar', 'Mehr','Aban','Azar','Dey','Bahman','Esfand'],
+            monthsShort: ['Far','Ord','Kho','Tir','Mor','Sha', 'Mhr','Abn','Azr','Dey','Bah','Esf']
+        }
+    }
 };

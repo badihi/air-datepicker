@@ -371,12 +371,13 @@
 
         formatDate: function (string, date) {
             date = date || this.date;
+            calendarDate = new this.calendar(date);
             var result = string,
                 boundary = this._getWordBoundaryRegExp,
                 locale = this.loc,
                 leadingZero = datepicker.getLeadingZeroNum,
-                decade = datepicker.getDecade(date),
-                d = datepicker.getParsedDate(date),
+                decade = datepicker.getDecade(calendarDate),
+                d = datepicker.getParsedDate(calendarDate),
                 fullHours = d.fullHours,
                 hours = d.hours,
                 ampm = string.match(boundary('aa')) || string.match(boundary('AA')),
@@ -385,7 +386,7 @@
                 validHours;
 
             if (this.opts.timepicker && this.timepicker && ampm) {
-                validHours = this.timepicker._getValidHoursFromDate(date, ampm);
+                validHours = this.timepicker._getValidHoursFromDate(calendarDate, ampm);
                 fullHours = leadingZero(validHours.hours);
                 hours = validHours.hours;
                 dayPeriod = validHours.dayPeriod;
@@ -411,7 +412,7 @@
                 case /m/.test(result):
                     result = replacer(result, boundary('m'), d.month + 1);
                 case /MM/.test(result):
-                    result = replacer(result, boundary('MM'), this.loc.months[d.month]);
+                    result = replacer(result, boundary('MM'), this.getMonthName(date));
                 case /M/.test(result):
                     result = replacer(result, boundary('M'), locale.monthsShort[d.month]);
                 case /ss/.test(result):
@@ -437,6 +438,15 @@
             }
 
             return result;
+        },
+        
+        getMonthName: function (date) {
+            var calendarDate = new this.calendar(date);
+            return this.loc.customCalendars &&
+                this.loc.customCalendars[this.calendar.calendarName] && 
+                this.loc.customCalendars[this.calendar.calendarName][this.opts.monthsField] &&
+                this.loc.customCalendars[this.calendar.calendarName][this.opts.monthsField][calendarDate.getMonth()]
+                    || this.loc[this.opts.monthsField][calendarDate.getMonth()];
         },
 
         _replacer: function (str, reg, data) {
@@ -489,7 +499,7 @@
             }
 
             if (_this.view == 'days') {
-                if (date.getMonth() != d.month && opts.moveToOtherMonthsOnSelect) {
+                if (new this.calendar(date).getMonth() != new this.calendar(this.date).getMonth() && opts.moveToOtherMonthsOnSelect) {
                     newDate = new Date(date.getFullYear(), date.getMonth(), 1);
                 }
             }
@@ -677,8 +687,9 @@
 
         _isSelected: function (checkDate, cellType) {
             var res = false;
+            var that = this;
             this.selectedDates.some(function (date) {
-                if (datepicker.isSame(date, checkDate, cellType)) {
+                if (datepicker.isSame(date, checkDate, cellType, that.calendar)) {
                     res = date;
                     return true;
                 }
@@ -718,9 +729,9 @@
          */
         _isInRange: function (date, type) {
             var time = date.getTime(),
-                d = datepicker.getParsedDate(date),
-                min = datepicker.getParsedDate(this.minDate),
-                max = datepicker.getParsedDate(this.maxDate),
+                d = datepicker.getParsedDate(new this.calendar(date)),
+                min = datepicker.getParsedDate(new this.calendar(this.minDate)),
+                max = datepicker.getParsedDate(new this.calendar(this.maxDate)),
                 dMinTime = new Date(d.year, d.month, min.date).getTime(),
                 dMaxTime = new Date(d.year, d.month, max.date).getTime(),
                 types = {
@@ -873,7 +884,7 @@
             if (nextView < 0) nextView = 0;
 
             this.silent = true;
-            this.date = new Date(date.getFullYear(), date.getMonth(), 1);
+            this.date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
             this.silent = false;
             this.view = this.viewIndexes[nextView];
 
@@ -1390,14 +1401,27 @@
 
         get curDecade() {
             return datepicker.getDecade(this.date)
+        },
+
+        get calendar() {
+            switch (this.opts.calendar) {
+                case 'jalali':
+                    return JalaliDate;
+                default: 
+                    return Date;
+            }
         }
     };
 
     //  Utils
     // -------------------------------------------------
 
-    datepicker.getDaysCount = function (date) {
-        return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    datepicker.getDaysCount = function (date, calendar) {
+        calendar = calendar || Date;
+        date = new calendar(date);
+        return date.getCurrentMonthDayCount
+            ? date.getCurrentMonthDayCount()
+            : new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
     };
 
     datepicker.getParsedDate = function (date) {
@@ -1431,10 +1455,11 @@
         });
     };
 
-    datepicker.isSame = function (date1, date2, type) {
+    datepicker.isSame = function (date1, date2, type, calendar) {
         if (!date1 || !date2) return false;
-        var d1 = datepicker.getParsedDate(date1),
-            d2 = datepicker.getParsedDate(date2),
+        calendar = calendar || Date;
+        var d1 = datepicker.getParsedDate(new calendar(date1)),
+            d2 = datepicker.getParsedDate(new calendar(date2)),
             _type = type ? type : 'day',
 
             conditions = {

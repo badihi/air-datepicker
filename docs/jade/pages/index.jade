@@ -12,7 +12,8 @@ block content
         script.
             var $promo = $('.datepicker-promo');
             $promo.datepicker({
-                language: 'en'
+                language: 'fa',
+                calendar: 'jalali'
             })
     article
         h2#intro Description
@@ -42,6 +43,7 @@ block content
 
                         <!-- Include English language -->
                         <script src="dist/js/i18n/datepicker.en.js"></script>
+                        <script src="dist/js/i18n/datepicker.fa.js"></script>
                     </head>
                 </html>
         p
@@ -529,6 +531,10 @@ block content
             | directory.
     article
         h2#options Options
+        .param
+            +param-header('calendar', 'string', '"gregorian"')
+            p The calendar that will be used to display the calendar. Can be +param("gregorian") or param("jalali").
+
         .param
             +param-header('classes', 'string', '""')
             p Extra css classes for datepicker.

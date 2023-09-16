@@ -60,19 +60,22 @@
 
         _getCellContents: function (date, type) {
             var classes = "datepicker--cell datepicker--cell-" + type,
+                calendarDate = new this.d.calendar(date),
                 currentDate = new Date(),
                 parent = this.d,
                 minRange = dp.resetTime(parent.minRange),
                 maxRange = dp.resetTime(parent.maxRange),
                 opts = parent.opts,
                 d = dp.getParsedDate(date),
+                dForDisplay = dp.getParsedDate(calendarDate),
                 render = {},
-                html = d.date;
+                html = dForDisplay.date,
+                selectedDate = new this.d.calendar(this.d.date);
 
             switch (type) {
                 case 'day':
                     if (parent.isWeekend(d.day)) classes += " -weekend-";
-                    if (d.month != this.d.parsedDate.month) {
+                    if (dForDisplay.month != selectedDate.getMonth()) {
                         classes += " -other-month-";
                         if (!opts.selectOtherMonths) {
                             classes += " -disabled-";
@@ -81,11 +84,11 @@
                     }
                     break;
                 case 'month':
-                    html = parent.loc[parent.opts.monthsField][d.month];
+                    html = parent.getMonthName(date);
                     break;
                 case 'year':
                     var decade = parent.curDecade;
-                    html = d.year;
+                    html = dForDisplay.year;
                     if (d.year < decade[0] || d.year > decade[1]) {
                         classes += ' -other-decade-';
                         if (!opts.selectOtherYears) {
@@ -128,9 +131,9 @@
                 }
             }
 
-
-            if (dp.isSame(currentDate, date, type)) classes += ' -current-';
-            if (parent.focused && dp.isSame(date, parent.focused, type)) classes += ' -focus-';
+            
+            if (dp.isSame(currentDate, date, type, this.d.calendar)) classes += ' -current-';
+            if (parent.focused && dp.isSame(date, parent.focused, type, this.d.calendar)) classes += ' -focus-';
             if (parent._isSelected(date, type)) classes += ' -selected-';
             if (!parent._isInRange(date, type) || render.disabled) classes += ' -disabled-';
 
@@ -147,9 +150,10 @@
          * @private
          */
         _getDaysHtml: function (date) {
-            var totalMonthDays = dp.getDaysCount(date),
-                firstMonthDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay(),
-                lastMonthDay = new Date(date.getFullYear(), date.getMonth(), totalMonthDays).getDay(),
+            var totalMonthDays = dp.getDaysCount(date, this.d.calendar),
+                calendarDate = new this.d.calendar(date),
+                firstMonthDay = new this.d.calendar(calendarDate.getFullYear(), calendarDate.getMonth(), 1).getDay(),
+                lastMonthDay = new this.d.calendar(calendarDate.getFullYear(), calendarDate.getMonth(), totalMonthDays).getDay(),
                 daysFromPevMonth = firstMonthDay - this.d.loc.firstDay,
                 daysFromNextMonth = 6 - lastMonthDay + this.d.loc.firstDay;
 
@@ -161,10 +165,14 @@
                 html = '';
 
             for (var i = startDayIndex, max = totalMonthDays + daysFromNextMonth; i <= max; i++) {
-                y = date.getFullYear();
-                m = date.getMonth();
+                y = calendarDate.getFullYear();
+                m = calendarDate.getMonth();
+                var currentDate = new this.d.calendar(y, m, i);
+                if (currentDate.getNativeDate) {
+                    currentDate = currentDate.getNativeDate();
+                }
 
-                html += this._getDayHtml(new Date(y, m, i))
+                html += this._getDayHtml(currentDate);
             }
 
             return html;
@@ -188,10 +196,15 @@
         _getMonthsHtml: function (date) {
             var html = '',
                 d = dp.getParsedDate(date),
+                calendarDate = new this.d.calendar(date),
                 i = 0;
 
-            while(i < 12) {
-                html += this._getMonthHtml(new Date(d.year, i));
+            while (i < 12) {
+                var currentMonth = new this.d.calendar(calendarDate.getFullYear(), i, 1);
+                if (currentMonth.getNativeDate) {
+                    currentMonth = currentMonth.getNativeDate();
+                }
+                html += this._getMonthHtml(currentMonth);
                 i++
             }
 
@@ -201,7 +214,7 @@
         _getMonthHtml: function (date) {
             var content = this._getCellContents(date, 'month');
 
-            return '<div class="' + content.classes + '" data-month="' + date.getMonth() + '">' + content.html + '</div>'
+            return '<div class="' + content.classes + '" data-month="' + date.getMonth() + '" data-date="' + date.getDate() + '">' + content.html + '</div>'
         },
 
         _getYearsHtml: function (date) {
