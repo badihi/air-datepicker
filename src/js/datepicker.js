@@ -369,9 +369,9 @@
             }
         },
 
-        formatDate: function (string, date) {
+        formatDate: function (string, date, calendar) {
             date = date || this.date;
-            calendarDate = new this.calendar(date);
+            calendarDate = new (calendar || this.calendar)(date);
             var result = string,
                 boundary = this._getWordBoundaryRegExp,
                 locale = this.loc,
