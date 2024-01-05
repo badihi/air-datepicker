@@ -275,6 +275,9 @@
   .-only-timepicker- .datepicker--nav {
     display: none; }
 
+html[dir=rtl] .datepicker--nav-action {
+  transform: rotate(180deg); }
+
 .datepicker--nav-title,
 .datepicker--nav-action {
   display: -ms-flexbox;
